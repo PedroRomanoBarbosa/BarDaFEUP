@@ -6,7 +6,7 @@
 	
 </head>
 <body>
-	<h1>Estás no sitio certo</h1>
+	<h1></h1>
 
 	
 </body>
