@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -32,8 +31,8 @@ public class Server {
 	static Queue<String> sendGrannyPending = new LinkedList<String>();
 	static Queue<String> sendFamilyPending = new LinkedList<String>();
 	
-	static int _PORT1 = 12345;
-	static int _PORT2 = 12346;
+	static int _PORT1 = 50000;
+	static int _PORT2 = 50001;
 	
 	public static void main(String[] args) {
 
@@ -46,7 +45,8 @@ public class Server {
 		try {System.in.read();} 
 			catch (IOException e) {e.printStackTrace();}
 		
-		return;
+		System.out.println("Closing down.");
+		System.exit(0);
 	}
 
 	
@@ -64,6 +64,8 @@ public class Server {
 					grannyRead = new BufferedReader(new InputStreamReader(grannySocket.getInputStream()));
 					grannyWrite = new PrintWriter(grannySocket.getOutputStream(), true);
 					
+					System.out.println("gran connected");
+					
 				} catch (IOException e) {e.printStackTrace();}
 				
 				updateGranny();
@@ -72,8 +74,12 @@ public class Server {
 					while(grannySocket.isConnected())
 					{
 						String buffer;
-						buffer = familyRead.readLine();
-						System.out.println("Granny says: " + buffer);
+						buffer = grannyRead.readLine();
+						System.out.println("Granny sent: " + buffer);
+						if(familySocket != null && familySocket.isConnected())
+							familyWrite.println(buffer);
+						else
+							sendFamilyPending.add(buffer);
 					}
 				} catch(IOException e){e.printStackTrace();}
 				
@@ -105,7 +111,10 @@ public class Server {
 					
 					familySocket = familySerSocket.accept();
 					familyRead = new BufferedReader(new InputStreamReader(familySocket.getInputStream()));
-					familyWrite = new PrintWriter(familySocket.getOutputStream(), true);					
+					familyWrite = new PrintWriter(familySocket.getOutputStream(), true);			
+					
+					System.out.println("fam connected");
+					
 				} catch (IOException e) {e.printStackTrace();}
 				
 				try {
@@ -118,13 +127,17 @@ public class Server {
 						{
 							String buffer;
 							buffer = familyRead.readLine();
-							System.out.println("Family says: " + buffer);
+							System.out.println("Family sent: " + buffer);
+							if(grannySocket != null && grannySocket.isConnected())
+								grannyWrite.println(buffer);
+							else
+								sendGrannyPending.add(buffer);
 						}
 						
 					}
 				} catch(IOException e){e.printStackTrace();}
 				
-				System.out.println("\n\n Family has left us! At least you were used from having your father away. (That was also some dark humor)");
+				System.out.println("\n\n Family has left us! At least you were used from having your father gone. (That was also some dark humor)");
 			}
 			
 		}
